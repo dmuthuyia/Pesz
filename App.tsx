@@ -1,58 +1,57 @@
-import React from 'react';
-import { StyleSheet, View, Text, Pressable, StatusBar, useColorScheme } from 'react-native';
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withSpring,
-} from 'react-native-reanimated';
+import React, {useEffect} from 'react';
+import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
+import {
+  Camera,
+  useCameraDevices,
+  useCameraPermission,    // ← the convenience hook
+} from 'react-native-vision-camera';
 
 export default function App() {
-  const isDarkMode = useColorScheme() === 'dark';
-  const progress = useSharedValue(0);
+  const devices = useCameraDevices();
+  const device = devices.find(d => d.position === 'back') ?? devices[0];
 
-  const animatedStyle = useAnimatedStyle(() => {
-    return {
-      width: withSpring(progress.value ? 200 : 100),
-      height: withSpring(progress.value ? 200 : 100),
-      backgroundColor: progress.value ? 'dodgerblue' : 'tomato',
-    };
-  });
+  const { hasPermission, requestPermission } = useCameraPermission();
+
+  useEffect(() => {
+    requestPermission();
+  }, [requestPermission]);
+
+  if (hasPermission === null) {
+    return (
+      <View style={styles.centered}>
+        <ActivityIndicator size="large" />
+        <Text style={styles.text}>Requesting camera permission…</Text>
+      </View>
+    );
+  }
+  if (!hasPermission) {
+    return (
+      <View style={styles.centered}>
+        <Text style={styles.text}>
+          Camera permission was denied. Please enable it in settings.
+        </Text>
+      </View>
+    );
+  }
+  if (!device) {
+    return (
+      <View style={styles.centered}>
+        <Text style={styles.text}>
+          No camera detected. On an emulator without a camera, nothing to show.
+        </Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
-      <Animated.View style={[styles.box, animatedStyle]} />
-      <Pressable
-        style={styles.button}
-        onPress={() => {
-          progress.value = progress.value ? 0 : 1;
-        }}
-      >
-        <Text style={styles.buttonText}>Toggle</Text>
-      </Pressable>
+      <Camera style={StyleSheet.absoluteFill} device={device} isActive />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#f0f0f0',
-  },
-  box: {
-    marginBottom: 20,
-  },
-  button: {
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    backgroundColor: 'gray',
-    borderRadius: 5,
-  },
-  buttonText: {
-    color: 'white',
-    fontWeight: 'bold',
-    fontSize: 16,
-  },
+  container: { flex: 1, backgroundColor: '#000' },
+  centered:  { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 },
+  text:      { marginTop: 12, textAlign: 'center', fontSize: 16 },
 });
