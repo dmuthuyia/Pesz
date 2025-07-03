@@ -1,57 +1,58 @@
-import React, {useEffect} from 'react';
-import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
-import {
-  Camera,
-  useCameraDevices,
-  useCameraPermission,    // ← the convenience hook
-} from 'react-native-vision-camera';
+import React from 'react'
+import { View, Text, Button, StyleSheet } from 'react-native'
+import { NavigationContainer } from '@react-navigation/native'
+import { createStackNavigator } from '@react-navigation/stack'
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
+
+const Stack = createStackNavigator()
+const Tab   = createBottomTabNavigator()
+
+function HomeScreen({ navigation }: any) {
+  return (
+    <View style={styles.center}>
+      <Text style={styles.text}>Home Screen</Text>
+      <Button title="Go to Details" onPress={() => navigation.navigate('Details')} />
+    </View>
+  )
+}
+
+function DetailsScreen() {
+  return (
+    <View style={styles.center}>
+      <Text style={styles.text}>Details Screen</Text>
+    </View>
+  )
+}
+
+function SettingsScreen() {
+  return (
+    <View style={styles.center}>
+      <Text style={styles.text}>Settings Screen</Text>
+    </View>
+  )
+}
+
+function HomeStack() {
+  return (
+    <Stack.Navigator screenOptions={{ headerShown: true }}>
+      <Stack.Screen name="Home" component={HomeScreen} />
+      <Stack.Screen name="Details" component={DetailsScreen} />
+    </Stack.Navigator>
+  )
+}
 
 export default function App() {
-  const devices = useCameraDevices();
-  const device = devices.find(d => d.position === 'back') ?? devices[0];
-
-  const { hasPermission, requestPermission } = useCameraPermission();
-
-  useEffect(() => {
-    requestPermission();
-  }, [requestPermission]);
-
-  if (hasPermission === null) {
-    return (
-      <View style={styles.centered}>
-        <ActivityIndicator size="large" />
-        <Text style={styles.text}>Requesting camera permission…</Text>
-      </View>
-    );
-  }
-  if (!hasPermission) {
-    return (
-      <View style={styles.centered}>
-        <Text style={styles.text}>
-          Camera permission was denied. Please enable it in settings.
-        </Text>
-      </View>
-    );
-  }
-  if (!device) {
-    return (
-      <View style={styles.centered}>
-        <Text style={styles.text}>
-          No camera detected. On an emulator without a camera, nothing to show.
-        </Text>
-      </View>
-    );
-  }
-
   return (
-    <View style={styles.container}>
-      <Camera style={StyleSheet.absoluteFill} device={device} isActive />
-    </View>
-  );
+    <NavigationContainer>
+      <Tab.Navigator screenOptions={{ headerShown: false }}>
+        <Tab.Screen name="HomeTab"     component={HomeStack}       options={{ title: 'Home' }} />
+        <Tab.Screen name="SettingsTab" component={SettingsScreen}  options={{ title: 'Settings' }} />
+      </Tab.Navigator>
+    </NavigationContainer>
+  )
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#000' },
-  centered:  { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 },
-  text:      { marginTop: 12, textAlign: 'center', fontSize: 16 },
-});
+  center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  text:   { fontSize: 18, marginBottom: 12 },
+})
