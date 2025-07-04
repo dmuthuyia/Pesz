@@ -13,6 +13,7 @@
 
     <!-- Contacts (already present) -->
     <uses-permission android:name="android.permission.READ_CONTACTS" />
+    <uses-permission android:name="android.permission.WRITE_CONTACTS" />
 
     <!-- External storage (keep tools:ignore if you really need MANAGE_EXTERNAL_STORAGE) -->
     <uses-permission
